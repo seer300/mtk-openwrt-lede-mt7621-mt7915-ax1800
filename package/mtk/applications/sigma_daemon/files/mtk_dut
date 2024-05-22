@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+
+START=96
+
+start() {
+	killall mtk_dut
+
+	count=0
+	while [ $count -lt 20 ]; do
+		echo "Wait $count seconds for WIFI interface up" >> /tmp/mtk_dut.txt
+
+		inf=`ifconfig | grep ra0 | awk '{print $1}' | sed -n 1p`
+		if [ "$inf" = "ra0" ]; then
+			echo "$inf is up, run mtk_dut" >> /tmp/mtk_dut.txt
+			sleep 2
+			mtk_dut ap br-lan 9000 &
+			break
+		fi
+		count=$((count + 1))
+	done
+}
+
+stop() {
+	pid=`ps | grep mtk_dut | awk '{print $1}' | sed -n 1p`
+	if [ $pid -ne 0 ]
+	then
+	        kill -9 $pid
+	fi
+}
